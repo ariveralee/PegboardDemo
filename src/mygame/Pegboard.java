@@ -1,5 +1,8 @@
 package mygame;
 
+import com.jme3.bullet.collision.PhysicsCollisionEvent;
+import com.jme3.bullet.collision.PhysicsCollisionListener;
+import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -16,13 +19,13 @@ import java.util.LinkedList;
  *
  * @author Rolf
  */
-public class Pegboard {
+public class Pegboard implements PhysicsCollisionListener{
 
     private static final int NUMROWS = 7;
     private static final float BOARDSIZE = 4.0f;
     protected static final float PEGDISTANCE = 1.3f;
     private static final float PEGDISTANCEZ = PEGDISTANCE * 0.7f;
-    protected static final float RESTITUTION = 0.1f;
+    protected static final float RESTITUTION = 0.4f;
     Main msa;
     float tilt; // tilt of board in degrees
     Node boardNode;
@@ -110,7 +113,18 @@ public class Pegboard {
     // -------------------------------------------------------------------------
     // init physics here
     private void initPhysics() {
-
+        RigidBodyControl tableGround = new RigidBodyControl(100.0f);
+        geomGround.addControl(tableGround);
+        tableGround.setKinematic(true);
+        msa.bullet.getPhysicsSpace().add(tableGround);
+        
+        RigidBodyControl phyGround = new RigidBodyControl(100.0f); // kinematic: mass does not matter
+        geomBoard.addControl(phyGround);
+        phyGround.setKinematic(true);
+        msa.bullet.getPhysicsSpace().add(phyGround);
+        msa.bullet.getPhysicsSpace().addCollisionListener(this);
+        
+        
     }
 
     // -------------------------------------------------------------------------
@@ -119,8 +133,60 @@ public class Pegboard {
         float x = (float) ((Math.random() - 0.5) * interval);
         // include tilt in y,z
         float a = tilt / 180f * FastMath.PI;
-        float y = 2.0f + BOARDSIZE * FastMath.sin(a);
+        float y = 1.0f + 2*BOARDSIZE* FastMath.sin(a);
         float z = -BOARDSIZE * 1.8f * FastMath.cos(a);
         return (new Vector3f(x, y, z));
     }
+    
+    public void collision(PhysicsCollisionEvent event) {
+        String binA = null;
+        String binB = null;
+        boolean targetBinA = false;
+        boolean targetBinB = false;
+        
+        if ( event.getNodeA().getName().startsWith("bin")) {
+            binA = event.getNodeA().getName().substring(4);
+            targetBinA = true;
+            
+        } else if (event.getNodeB().getName().startsWith("bin")) {
+            binB = event.getNodeB().getName().substring(4);
+            targetBinB = true;
+            
+        }
+        
+        // if
+        if (targetBinA == true) {
+            // if we get here, we know the target is node A, so Node B is
+            // the marble.
+            if (event.getNodeB().getUserData("COLLIDED") == "YES") {
+                return;
+           }
+            event.getNodeB().setUserData("COLLIDED", "YES");
+            int a = Integer.parseInt(binA);
+            a--;
+            int printBin = a + 1;
+            System.out.println("The marble just hit bin " + printBin );
+            float hit = bins.get(a).hits++;
+            bins.get(a).rescale(1f + hit);
+           
+            
+        } else if (targetBinB == true) {
+           // if we get here, we know the target is node B, so Node A is the
+           // marble.
+            if (event.getNodeA().getUserData("COLLIDED") == "YES") {
+                return;
+           }
+            event.getNodeA().setUserData("COLLIDED", "YES");
+            System.out.println("The Marble is node A");
+            int b = Integer.parseInt(binB);
+            b--;
+            int printBin = b + 1;
+            System.out.println("The marble just hit bin " + printBin );
+            float hit = bins.get(b).hits++;
+            bins.get(b).rescale(1f + hit);
+        }
+        
+    }
+    
+
 }

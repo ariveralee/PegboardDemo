@@ -1,6 +1,9 @@
 package mygame;
 
 import com.jme3.bounding.BoundingBox;
+import com.jme3.bullet.collision.PhysicsCollisionObject;
+import com.jme3.bullet.collision.shapes.BoxCollisionShape;
+import com.jme3.bullet.control.GhostControl;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
@@ -26,6 +29,9 @@ public class TargetBin {
     public TargetBin(Main msa, int id) {
         this.msa = msa;
         initTargetBin(id);
+        initPhysics();
+        
+        
     }
 
     // -------------------------------------------------------------------------
@@ -40,6 +46,7 @@ public class TargetBin {
         geomBox.setMaterial(matBin);
         geomBox.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         geomBox.setQueueBucket(Bucket.Transparent);
+        
     }
 
     // -------------------------------------------------------------------------
@@ -54,12 +61,25 @@ public class TargetBin {
     
     // -------------------------------------------------------------------------
     protected void initPhysics(){
+         
+        GhostControl ghost;
+       
+        BoundingBox bb = (BoundingBox)geomBox.getModelBound();
+        Vector3f boxSize = new Vector3f();
+        bb.getExtent(boxSize);
+        ghost = new GhostControl(new BoxCollisionShape(boxSize));
+        geomBox.addControl(ghost);
+        msa.bullet.getPhysicsSpace().add(ghost);
+        ghost.setCollisionGroup(PhysicsCollisionObject.COLLISION_GROUP_02);
+        ghost.setCollideWithGroups(PhysicsCollisionObject.COLLISION_GROUP_01);
+        
+        
     }
     
     // -------------------------------------------------------------------------
     // this does NOT influence any attached physics objects!
     void rescale(float newSize) {
-        geomBox.setLocalScale(1,newSize+0.01f,1); 
+        geomBox.setLocalScale(1,newSize+1f,1); 
         geomBox.updateModelBound();
     }  
 }

@@ -4,6 +4,8 @@
  */
 package mygame;
 
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
@@ -18,6 +20,7 @@ import com.jme3.scene.shape.Sphere;
 public class Marble {
 
     private Main msa;
+    BulletAppState bullet = new BulletAppState();
     public static final float RADIUS = 0.15f;
     private static Material matMarble = null;
     Geometry geomMarble;
@@ -51,6 +54,11 @@ public class Marble {
     // -------------------------------------------------------------------------
     // initialize physics here
     private void initPhysics() {
-
+        // The marble is created after initPhysics has been called in Main
+        // this ensures that we have the bullet app state to reference from main
+        RigidBodyControl phySmall = new RigidBodyControl(5.0f);
+        geomMarble.addControl(phySmall);
+        msa.bullet.getPhysicsSpace().add(phySmall);
+       
     }
 }

@@ -15,13 +15,21 @@ import com.jme3.system.AppSettings;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.util.LinkedList;
+import java.util.Random;
+
 
 public class Main extends SimpleApplication {
-
+    Random rand = new Random();
     BulletAppState bullet;
     Pegboard pegboard;
+    Marble marble;
+    Peg peg;
     float time = 0;
+    int count;
     LinkedList<Marble> marbles = new LinkedList<Marble>();
+    long totalTime;
+    long currentTime;
+    long timeLen = 4000;
 
     // -------------------------------------------------------------------------
     public static void main(String[] args) {
@@ -39,12 +47,20 @@ public class Main extends SimpleApplication {
         initCam();
         initPhysics();
         pegboard = new Pegboard(this);
+        totalTime = System.currentTimeMillis();
+        // just so we have one appear so we know it works
+        makeMarbles();
     }
 
     // -------------------------------------------------------------------------
     @Override
     public void simpleUpdate(float tpf) {
-        // you may fill in your game logic here
+         currentTime = System.currentTimeMillis();
+         if (currentTime - totalTime >= timeLen) {
+            makeMarbles(); 
+            totalTime = currentTime;
+         }
+           
         
     }
 
@@ -80,7 +96,7 @@ public class Main extends SimpleApplication {
 
         // SHADOW
         // the second parameter is the resolution. Experiment with it! (Must be a power of 2)
-        DirectionalLightShadowRenderer dlsr = new DirectionalLightShadowRenderer(assetManager, 4096, 2);
+        DirectionalLightShadowRenderer dlsr = new DirectionalLightShadowRenderer(assetManager, 4096, 1);
         dlsr.setLight(sun);
         viewPort.addProcessor(dlsr);
     }
@@ -94,8 +110,10 @@ public class Main extends SimpleApplication {
 
     // -------------------------------------------------------------------------
     private void initPhysics() {
-        // initialize the physics engine here
-        
+        // initialize the physics engine
+        bullet = new BulletAppState();
+        stateManager.attach(bullet);
+        bullet.setDebugEnabled(false);
     }
 
     // -------------------------------------------------------------------------
@@ -132,5 +150,10 @@ public class Main extends SimpleApplication {
         getRootNode().attachChild(geomXA);
         getRootNode().attachChild(geomYA);
         getRootNode().attachChild(geomZA);
+    }
+    
+    protected void makeMarbles() {
+        float random = rand.nextFloat();
+        marble = new Marble(this, pegboard.createMarbleStartPosition(random));
     }
 }

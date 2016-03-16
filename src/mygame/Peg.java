@@ -1,5 +1,7 @@
 package mygame;
 
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -16,11 +18,12 @@ public class Peg {
     Main msa;
     Geometry geomPeg;
     static Material matPeg;
-
+    BulletAppState bullet = new BulletAppState();
     // -------------------------------------------------------------------------
     public Peg(Main msa) {
         this.msa = msa;
         initPeg();
+        
     }
 
     // -------------------------------------------------------------------------
@@ -43,11 +46,16 @@ public class Peg {
         geomPeg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         geomPeg.rotate(-FastMath.PI / 2.0f, 0, 0);
         setPosition(0,0);
+        initPhysics();
     }
 
     // -------------------------------------------------------------------------
     protected void initPhysics(){
-
+        RigidBodyControl pegBounce = new RigidBodyControl(100.0f);
+        geomPeg.addControl(pegBounce);
+        pegBounce.setKinematic(true);
+        msa.bullet.getPhysicsSpace().add(pegBounce);
+        
     }
     
     
